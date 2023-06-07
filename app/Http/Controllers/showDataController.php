@@ -18,14 +18,17 @@ class showDataController extends Controller
         $daystart = Carbon::now()->format('Y-m-d 00:00:00');
         $dayend = Carbon::now()->format('Y-m-d 23:59:59');
         $today = Carbon::now()->format('l j'. ' , ' .'h:i A');
+        $currentDate = date('Y-m-d');
 
         $attendance = Attandance::whereBetween('created_at', [$daystart, $dayend])
         ->whereRaw('TIME(created_at) = TIME(updated_at)')
         ->orderByDesc('id')->get();
         $nurseinfo = Nurse::get();
+        $dayRequest = RequestService::where('status', 1)
+                ->whereDate('created_at', $currentDate)->count();
 
 
-        return view('dashboard')->with(['nurseAttendance' => $attendance, 'no' => $no, 'nurseinfo' => $nurseinfo, 'todayTime' => $today]);
+        return view('dashboard')->with(['nurseAttendance' => $attendance, 'no' => $no, 'nurseinfo' => $nurseinfo, 'todayTime' => $today, 'dayRequest' => $dayRequest]);
     }
 
     //show nurse
@@ -42,7 +45,7 @@ class showDataController extends Controller
         $bed = Bed::get();
         return view('bed', ['bed' => $bed]);
     }
-    
+
     //show attendance
     public function attendanceRecord()
     {

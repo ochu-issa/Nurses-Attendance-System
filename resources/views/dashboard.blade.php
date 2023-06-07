@@ -54,7 +54,7 @@
                             <table class="table table-stripped">
                                 <tr>
                                     <th>Date </th>
-                                    <td>{{ $todayTime }}</td>
+                                    <td><span class="badge badge-primary">{{ $todayTime }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Available Nurses</th>
@@ -62,12 +62,12 @@
                                 </tr>
                                 <tr>
                                     <th>Total Request</th>
-                                    <td>6</td>
+                                    <td>{{$dayRequest}}</td>
                                 </tr>
-                                <tr>
+                                {{-- <tr>
                                     <th>Responses</th>
                                     <td><span class="badge badge-success">5</span></td>
-                                </tr>
+                                </tr> --}}
 
                             </table>
                         </div>
