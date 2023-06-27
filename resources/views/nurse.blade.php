@@ -190,7 +190,7 @@
                                 </div>
                                 <div class="col col-md-6">
                                     <label for="">Enter Phone Number</label>
-                                    <input type="text" name="phone_number" placeholder="0654554455 ..."
+                                    <input type="text" name="phone_number" placeholder="255654554455 ..."
                                         class="form-control" id="" required>
                                 </div>
                             </div>

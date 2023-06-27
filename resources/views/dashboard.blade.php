@@ -95,9 +95,9 @@
                         </thead>
                         <tbody>
 
-                            @foreach ($nurseAttendance as $attendances)
+                            @foreach ($nurseAttendance as $index => $attendances)
                                 <tr>
-                                    <td>{{ $no }}</td>
+                                    <td>{{ $index+1 }}</td>
                                     <td>{{ $nurseinfo->where('id', $attendances->nurse_id)->first()->nurse_number }}
                                     </td>
                                     <td>
@@ -110,9 +110,7 @@
                                     @endif
 
                                 </tr>
-                                @php
-                                    $no++;
-                                @endphp
+                                
                             @endforeach
                         </tbody>
                     </table>

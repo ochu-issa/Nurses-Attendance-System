@@ -22,10 +22,17 @@ class AddNurseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'f_name' => ['required', 'string'],
-            'l_name' => ['required', 'string'],
+            'f_name' => ['required', 'string', 'alpha'],
+            'l_name' => ['required', 'string', 'alpha'],
             'gender' => ['required', 'string'],
-            'phone_number' => ['required', 'string', 'unique:nurses'],
+            'phone_number' => ['required', 'string', 'unique:nurses', 'regex:/^255[0-9]{9}$/'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.regex' => 'The phone number must be in the format 255XXXXXXXXX.',
         ];
     }
 }

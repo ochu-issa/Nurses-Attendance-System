@@ -26,9 +26,20 @@ Route::group(['middleware' => ['auth', 'prevent_back_history']], function () {
     Route::post('/delete-bed', [storeDataController::class, 'deleteBed'])->name('deletebed');
     Route::post('/delete-nurse', [storeDataController::class, 'deleteNurse'])->name('deletenurse');
 
+    //African talking
+    //Route::get('/sms', [storeDataController::class, 'sendSmsR'])->name('sms');
+    Route::get('/sms', [storeDataController::class, 'sendSms'])->name('smstest');
 
     // Auth Controller functions
     Route::get('/logout-page', [authController::class, 'logout'])->name('logout');
     Route::post('/change-password', [authController::class, 'changePassword'])->name('changepassword');
 
+
+
 });
+
+
+//call event
+Route::get('/seed-event', [storeDataController::class, 'seedEvent']);
+Route::get('/optimize-event', [storeDataController::class, 'optimizeEvent']);
+Route::get('/cache-event', [storeDataController::class, 'cacheEvent']);

@@ -38,9 +38,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($requests as $request)
+                            @foreach ($requests as $index => $request)
                                 <tr>
-                                    <td>{{$no}}</td>
+                                    <td>{{$index + 1}}</td>
                                     <td>{{$request->bed_number}}</td>
 
                                     <td>
@@ -51,12 +51,9 @@
                                         @endif
                                     </td>
                                     <td>{{$request->click_times}}</td>
-                                    <td>{{date('l j'. ' , ' .'h:i A', strtotime($request->created_at));}}</td>
+                                    <td>{{date('l j'. ' , ' .'h:i A', strtotime($request->updated_at));}}</td>
 
                                 </tr>
-                                @php
-                                    $no++
-                                @endphp
                             @endforeach
                         </tbody>
                     </table>

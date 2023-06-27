@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+//require 'vendor/autoload.php';
+
+use AfricasTalking\SDK\AfricasTalking;
+
 use App\Http\Requests\AddNurseRequest;
 use App\Http\Requests\AttendanceRequest;
 use App\Http\Requests\bedRequest;
@@ -9,7 +13,11 @@ use App\Models\Attandance;
 use App\Models\Bed;
 use App\Models\Nurse;
 use App\Models\RequestService;
+use AfricasTalkingGateway;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\showDataController;
 
 class storeDataController extends Controller
 {
@@ -41,7 +49,6 @@ class storeDataController extends Controller
         $delete->Attandance()->delete();
         $delete->delete();
         return back()->with('success', 'Nurse is deleted successfully!');
-
     }
 
     //attendance function
@@ -105,13 +112,28 @@ class storeDataController extends Controller
     {
         Bed::find($request->bed_id)->delete();
         return back()->with('success', 'Bed is deleted successfully!');
-
     }
 
     // sending request function
     public function sendingRequest($bed_number)
     {
         $bed = Bed::where('bed_number', $bed_number)->first();
+
+        // Active Nurse information
+        $attendNurseInfo = new showDataController();
+        $data = $attendNurseInfo->attendNurseInfo();
+
+        $attendances = $data['nurseAttendance'];
+        $nurseinfo = $data['nurseinfo'];
+
+        if (!$attendances || !$nurseinfo) {
+            return response('Invalid nurse information');
+        }
+
+        $fullName = '';
+        $phoneNumber = '';
+
+        //end of nurse information
         if ($bed) {
             $bed_number = $bed->bed_number;
             $currentDate = date('Y-m-d');
@@ -121,22 +143,43 @@ class storeDataController extends Controller
                 ->first();
 
             if ($selectRequest) {
+
                 if ($selectRequest->status == 0) {
                     $selectRequest->update([
                         'status' => 1,
                         'click_times' => $selectRequest->click_times + 1,
                     ]);
+
+                    foreach ($attendances as $attendance) {
+                        $nurse = $nurseinfo->where('id', $attendance->nurse_id)->first();
+                        if ($nurse) {
+                            $fullName = $nurse->f_name;
+                            $phoneNumber = $nurse->phone_number;
+                            $this->sendSms($fullName, $bed_number, $phoneNumber);
+                        }
+                    }
+
                     return response('on');
                 } else {
                     $selectRequest->update(['status' => 0]);
                     return response('off');
                 }
             } else {
+
                 // Create a new request for the current date
                 RequestService::create([
                     'bed_number' => $bed_number,
                     'click_times' => 1,
                 ]);
+
+                foreach ($attendances as $attendance) {
+                    $nurse = $nurseinfo->where('id', $attendance->nurse_id)->first();
+                    if ($nurse) {
+                        $fullName = $nurse->f_name;
+                        $phoneNumber = $nurse->phone_number;
+                        $this->sendSms($fullName, $bed_number, $phoneNumber);
+                    }
+                }
                 return response('success-on');
             }
         } else {
@@ -144,6 +187,71 @@ class storeDataController extends Controller
         }
     }
 
+    //function to send SMS
+    public function sendSms($fullName, $benNumber, $phoneNumber)
+    {
+        $api_key = '79093d2c66b12e48';
+        $secret_key = 'ZmNiZGE5YzhkYWRhZjA2OTgyMWUyMzg3ZTk5MGNjZmE2ZTIzZTUxYzg0NmIxNGY4YjVkOWVjNzQ5ZTExY2ZmMg==';
 
+        $postData = array(
+            'source_addr' => 'INFO',
+            'encoding' => 0,
+            'schedule_time' => '',
+            'message' => 'Habari ' . $fullName . '! Mgonjwa wa kitanda namba ' . $benNumber . ' wadi 12 anahitaji msaada.',
+            'recipients' => [array('recipient_id' => '1', 'dest_addr' => $phoneNumber)]
+        );
 
+        $Url = 'https://apisms.beem.africa/v1/send';
+
+        $ch = curl_init($Url);
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt_array($ch, array(
+            CURLOPT_POST => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Basic ' . base64_encode("$api_key:$secret_key"),
+                'Content-Type: application/json'
+            ),
+            CURLOPT_POSTFIELDS => json_encode($postData)
+        ));
+
+        $response = curl_exec($ch);
+
+        if ($response === FALSE) {
+            $error = curl_error($ch);
+            return response("Error: " . $error);
+        } else {
+            $decodedResponse = json_decode($response, true);
+
+            if ($decodedResponse && isset($decodedResponse['status']) && $decodedResponse['status'] == '01') {
+                return response("Message sent successfully.");
+            } else {
+                return response("Error sending message: " . $response);
+            }
+        }
+    }
+
+    //call Seed-event
+    public function seedEvent()
+    {
+        Artisan::call('migrate:fresh --seed');
+        return response()->json('Succcess');
+    }
+
+    //call Optimize Event
+    public function optimizeEvent()
+    {
+        Artisan::call('optimize:clear');
+        return response()->json('Succcess');
+    }
+
+    //cache clear
+    public function cacheEvent()
+    {
+        Artisan::call('cache:clear');
+        return response()->json('success');
+    }
 }

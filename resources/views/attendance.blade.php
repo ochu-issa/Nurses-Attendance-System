@@ -61,13 +61,14 @@
                                         {{ $nurseinfo->where('id', $attendances->nurse_id)->first()->f_name }}
                                         {{ $nurseinfo->where('id', $attendances->nurse_id)->first()->l_name }}
                                     </td>
-                                    <td>{{ $attendances->created_at->format('H:i') }}</td>
-                                    @if ($attendances->created_at == $attendances->updated_at)
-                                        <td><span class="badge badge-success"> On site..</span></td>
+                                    <td>{{ $attendances->created_at->format('l j' . ' , ' . 'h:i A') }}</td>
+                                    @if ($attendances->created_at == $attendances->updated_at && !$attendances->created_at->isToday())
+                                        <td><span class="badge badge-danger">Did not sign out..</span></td>
+                                    @elseif ($attendances->created_at == $attendances->updated_at)
+                                        <td><span class="badge badge-success">On site..</span></td>
                                     @else
-                                        <td>{{ $attendances->updated_at->format('H:i') }}</td>
+                                        <td>{{ $attendances->updated_at->format('l j, h:i A') }}</td>
                                     @endif
-
                                 </tr>
                                 @php
                                     $no++;

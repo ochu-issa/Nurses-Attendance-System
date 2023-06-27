@@ -14,21 +14,38 @@ class showDataController extends Controller
     //show dashboard
     public function dashboard()
     {
-        $no = 1;
-        $daystart = Carbon::now()->format('Y-m-d 00:00:00');
-        $dayend = Carbon::now()->format('Y-m-d 23:59:59');
+        $data = $this->attendNurseInfo();
+
         $today = Carbon::now()->format('l j'. ' , ' .'h:i A');
         $currentDate = date('Y-m-d');
+        $dayRequest = RequestService::where('status', 1)->whereDate('created_at', $currentDate)->count();
+
+        return view('dashboard', ([
+            'nurseAttendance' => $data['nurseAttendance'],
+            'nurseinfo' => $data['nurseinfo'],
+            'todayTime' => $today,
+            'dayRequest' => $dayRequest
+        ]));
+    }
+
+
+    //function to retrive on site nurse
+    public function attendNurseInfo()
+    {
+        $daystart = Carbon::now()->format('Y-m-d 00:00:00');
+        $dayend = Carbon::now()->format('Y-m-d 23:59:59');
 
         $attendance = Attandance::whereBetween('created_at', [$daystart, $dayend])
         ->whereRaw('TIME(created_at) = TIME(updated_at)')
-        ->orderByDesc('id')->get();
+        ->latest()->get();
+
         $nurseinfo = Nurse::get();
-        $dayRequest = RequestService::where('status', 1)
-                ->whereDate('created_at', $currentDate)->count();
 
+        return ([
+            'nurseAttendance' => $attendance,
+            'nurseinfo' => $nurseinfo
+        ]);
 
-        return view('dashboard')->with(['nurseAttendance' => $attendance, 'no' => $no, 'nurseinfo' => $nurseinfo, 'todayTime' => $today, 'dayRequest' => $dayRequest]);
     }
 
     //show nurse
@@ -59,8 +76,7 @@ class showDataController extends Controller
     //show request
     public function showRequest()
     {
-        $request = RequestService::get();
-        $no = 1;
-        return view('requestService', ['requests' => $request, 'no' => $no]);
+        $request = RequestService::latest()->get();
+        return view('requestService', ['requests' => $request]);
     }
 }
